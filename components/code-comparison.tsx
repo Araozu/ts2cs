@@ -103,7 +103,7 @@ export function CodeComparison({ examples }: { examples: CodeExample[] }) {
         </div>
         <h1 className="text-2xl font-bold tracking-tight">TypeScript → C#</h1>
         <p className="text-sm text-muted-foreground">
-          Side-by-side code comparisons between TypeScript and C#
+          Comparaciones de código lado a lado entre TypeScript y C#
         </p>
       </header>
 
