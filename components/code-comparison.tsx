@@ -1,10 +1,9 @@
-"use client"
-
 import {
   FileTsIcon,
   FileCSharpIcon,
   ArrowsLeftRightIcon,
-} from "@phosphor-icons/react"
+} from "@phosphor-icons/react/dist/ssr"
+import { codeToHtml } from "shiki"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -31,8 +30,8 @@ function LangBadge({ lang }: { lang: "TypeScript" | "C#" }) {
       className={cn(
         "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold",
         lang === "TypeScript"
-          ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-          : "bg-purple-500/10 text-purple-600 dark:text-purple-400"
+          ? "bg-ts/10 text-ts"
+          : "bg-csharp/10 text-csharp"
       )}
     >
       {lang === "TypeScript" ? (
@@ -47,16 +46,32 @@ function LangBadge({ lang }: { lang: "TypeScript" | "C#" }) {
 
 // ─── Code pane ────────────────────────────────────────────────────────────────
 
-function CodePane({ lang, code }: { lang: "TypeScript" | "C#"; code: string }) {
+async function CodePane({ lang, code }: { lang: "TypeScript" | "C#"; code: string }) {
+  const html = await codeToHtml(code.trimEnd(), {
+    lang: lang === "TypeScript" ? "typescript" : "csharp",
+    themes: {
+      light: "github-light",
+      dark: "github-dark",
+    },
+    defaultColor: false,
+  })
+
   return (
-    <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border">
+    <div
+      className={cn(
+        "flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border",
+        lang === "C#" && "border-csharp/40"
+      )}
+    >
       <div className="flex items-center gap-2 border-b bg-muted/40 px-3 py-2">
         <LangBadge lang={lang} />
       </div>
       <ScrollArea className="h-full">
-        <pre className="min-w-max p-4 text-xs leading-relaxed">
-          <code>{code.trimEnd()}</code>
-        </pre>
+        <div
+          className="shiki-wrapper min-w-max p-4 text-xs leading-relaxed [&>pre]:contents"
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: shiki output is trusted
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
     </div>
@@ -65,7 +80,7 @@ function CodePane({ lang, code }: { lang: "TypeScript" | "C#"; code: string }) {
 
 // ─── Single comparison card ───────────────────────────────────────────────────
 
-function ComparisonCard({ example }: { example: CodeExample }) {
+async function ComparisonCard({ example }: { example: CodeExample }) {
   return (
     <Card className="flex flex-col gap-0 overflow-hidden p-0">
       <CardHeader className="border-b px-5 py-4">
@@ -90,16 +105,16 @@ function ComparisonCard({ example }: { example: CodeExample }) {
   )
 }
 
-// ─── Page layout (client, receives pre-loaded data) ───────────────────────────
+// ─── Page layout ──────────────────────────────────────────────────────────────
 
-export function CodeComparison({ examples }: { examples: CodeExample[] }) {
+export async function CodeComparison({ examples }: { examples: CodeExample[] }) {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-12 sm:px-6 lg:px-12">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <FileTsIcon weight="duotone" className="size-6 text-blue-500" />
+          <FileTsIcon weight="duotone" className="size-6 text-ts" />
           <ArrowsLeftRightIcon className="size-4 text-muted-foreground" />
-          <FileCSharpIcon weight="duotone" className="size-6 text-purple-500" />
+          <FileCSharpIcon weight="duotone" className="size-6 text-csharp" />
         </div>
         <h1 className="text-2xl font-bold tracking-tight">TypeScript → C#</h1>
         <p className="text-sm text-muted-foreground">

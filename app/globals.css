@@ -7,6 +7,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-ts: var(--ts);
+  --color-csharp: var(--csharp);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -48,6 +50,8 @@
 }
 
 :root {
+  --ts: oklch(0.52 0.195 251.1);
+  --csharp: oklch(0.45 0.27 278.6);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -63,8 +67,8 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.58 0.22 27);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  --border: oklch(0.8 0 0);
+  --input: oklch(0.9 0 0);
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.871 0.15 154.449);
   --chart-2: oklch(0.723 0.219 149.579);
@@ -83,6 +87,8 @@
 }
 
 .dark {
+  --ts: oklch(0.67 0.16 242.6);
+  --csharp: oklch(0.68 0.22 287.4);
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -125,6 +131,22 @@
   }
   pre, code, kbd, samp {
     font-family: var(--font-mono), ui-monospace, monospace;
+  }
+
+  /* ─── Shiki dual-theme (light/dark) ────────────────────────────────────── */
+  .shiki-wrapper .shiki span {
+    color: var(--shiki-light);
+  }
+  .dark .shiki-wrapper .shiki span {
+    color: var(--shiki-dark);
+  }
+  .shiki-wrapper .shiki,
+  .shiki-wrapper pre {
+    background-color: transparent !important;
+    margin: 0;
+    padding: 0;
+    font-size: inherit;
+    line-height: inherit;
   }
 }
 

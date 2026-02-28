@@ -1,40 +1,12 @@
 examples:
-  - title: "Async / Await"
-    description: "Fetching data asynchronously with typed responses"
+  - title: Variables
+    description: C# utiliza var
     typescript: |
-      interface User {
-        id: number;
-        name: string;
-        email: string;
-      }
-
-      async function fetchUser(id: number): Promise<User> {
-        const response = await fetch(`/api/users/${id}`);
-        if (!response.ok) {
-          throw new Error(`HTTP error: ${response.status}`);
-        }
-        return response.json() as Promise<User>;
-      }
-
-      // Usage
-      const user = await fetchUser(42);
-      console.log(user.name);
+      let edad     = 10;
+      const nombre = "Alice";
     csharp: |
-      public record User(int Id, string Name, string Email);
-
-      public async Task<User> FetchUserAsync(int id)
-      {
-          using var client = new HttpClient();
-          var response = await client.GetAsync($"/api/users/{id}");
-          response.EnsureSuccessStatusCode();
-          return await response.Content
-              .ReadFromJsonAsync<User>()
-              ?? throw new InvalidOperationException("No data");
-      }
-
-      // Usage
-      var user = await FetchUserAsync(42);
-      Console.WriteLine(user.Name);
+      var edad     = 10;
+      var nombre   = "Alice";
 
   - title: "Generics & Constraints"
     description: "Generic utility functions with type constraints"
