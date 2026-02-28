@@ -2,100 +2,472 @@ examples:
   - title: Variables
     description: C# utiliza var
     typescript: |
-      let edad     = 10;
+      let edad     = 35;
       const nombre = "Alice";
+
+      // Con tipo de dato
+      let profesion: string = "Ingeniera";
+      let pedido:    Pedido = new Pedido();
     csharp: |
-      var edad     = 10;
-      var nombre   = "Alice";
+      var edad     = 35;
+      // C# no tiene `const` :c
 
-  - title: "Generics & Constraints"
-    description: "Generic utility functions with type constraints"
+      // El tipo de dato explicito reemplaza a `var`
+      string profesion = "Ingeniera";
+      Pedido pedido    = new Pedido();
+
+  - title: Entidades básicas
+    description: Muy parecidas
     typescript: |
-      interface Identifiable {
-        id: string | number;
-      }
-
-      function findById<T extends Identifiable>(
-        items: T[],
-        id: T["id"]
-      ): T | undefined {
-        return items.find((item) => item.id === id);
-      }
-
-      function groupBy<T, K extends keyof T>(
-        items: T[],
-        key: K
-      ): Map<T[K], T[]> {
-        return items.reduce((map, item) => {
-          const group = item[key];
-          const list = map.get(group) ?? [];
-          return map.set(group, [...list, item]);
-        }, new Map<T[K], T[]>());
+      class Cotizacion {
+        public id: string;
+        public clienteId: string;
+        public cliente: Cliente;
+        public precio: decimaljs.Decimal;
       }
     csharp: |
-      public interface IIdentifiable
-      {
-          object Id { get; }
+      class Cotizacion {
+          public Guid    Id { get; set; }
+          public string  ClienteId { get; set; }
+          public Cliente Cliente { get; set; }
+          public decimal Precio { get; set; }
       }
 
-      public static T? FindById<T>(
-          IEnumerable<T> items,
-          object id
-      ) where T : IIdentifiable
-      {
-          return items.FirstOrDefault(i => i.Id.Equals(id));
-      }
-
-      public static Dictionary<TKey, List<T>> GroupBy<T, TKey>(
-          IEnumerable<T> items,
-          Func<T, TKey> keySelector
-      ) where TKey : notnull
-      {
-          return items
-              .GroupBy(keySelector)
-              .ToDictionary(g => g.Key, g => g.ToList());
-      }
-
-  - title: "Pattern Matching"
-    description: "Exhaustive pattern matching on discriminated unions / sealed types"
+  - title: Entidades DDD
+    description: En DDD estricto, los getters son publicos y los setters privados
     typescript: |
-      type Shape =
-        | { kind: "circle"; radius: number }
-        | { kind: "rect"; width: number; height: number }
-        | { kind: "triangle"; base: number; height: number };
+      class Cotizacion {
+        private _id: string;
+        private _clienteId: string;
+        private _cliente: Cliente;
+        private _precio: decimaljs.Decimal;
 
-      function area(shape: Shape): number {
-        switch (shape.kind) {
-          case "circle":
-            return Math.PI * shape.radius ** 2;
-          case "rect":
-            return shape.width * shape.height;
-          case "triangle":
-            return 0.5 * shape.base * shape.height;
+        public get id() { return this._id; }
+        public get clienteId() { return this._clienteId; }
+        public get cliente() { return this._cliente; }
+
+        aplicarDescuento(descuento: decimaljs.Decimal) {
+          this._precio = this._precio.mul(decimaljs(1).sub(descuento));
+        }
+      }
+    csharp: |
+      class Cotizacion {
+          public Guid Id { get; private set; }
+          public string ClienteId { get; private set; }
+          public Cliente Cliente { get; private set; }
+          public decimal Precio { get; private set; }
+
+          public void AplicarDescuento(decimal descuento) {
+              Precio *= (1 - descuento);
+          }
+      }
+
+  - title: Crear clase con interfaz
+    description: Esto ya no es necesario en C#, pero es común en TypeScript. C# crea automáticamente un constructor con los parámetros de las propiedades
+    typescript: |
+      interface ContizacionProps {
+        id?: string;
+        clienteId: string;
+        cliente: Cliente;
+        precio: decimaljs.Decimal;
+      }
+
+      class Cotizacion {
+        public id: string;
+        public clienteId: string;
+        public cliente: Cliente;
+        public precio: decimaljs.Decimal;
+
+        constructor(props: ContizacionProps) {
+          super(props.id, props.createdAt, props.updatedAt);
+
+          this.id = props.id ?? crypto.randomUUID();
+          this.clienteId = props.clienteId;
+          this.cliente = props.cliente;
+          this.precio = props.precio;
         }
       }
 
-      const shapes: Shape[] = [
-        { kind: "circle", radius: 5 },
-        { kind: "rect", width: 4, height: 6 },
-      ];
-      const areas = shapes.map(area);
+      const cotizacion = new Cotizacion({
+        clienteId: "123",
+        cliente: new Cliente(),
+        precio: decimaljs(100)
+      });
     csharp: |
-      public abstract record Shape;
-      public record Circle(double Radius) : Shape;
-      public record Rect(double Width, double Height) : Shape;
-      public record Triangle(double Base, double Height) : Shape;
 
-      public static double Area(Shape shape) => shape switch
-      {
-          Circle c    => Math.PI * c.Radius * c.Radius,
-          Rect r      => r.Width * r.Height,
-          Triangle t  => 0.5 * t.Base * t.Height,
-          _           => throw new UnreachableException()
+
+
+
+
+
+
+      class Cotizacion {
+          public Guid    Id { get; set; }
+          public string  ClienteId { get; set; }
+          public Cliente Cliente { get; set; }
+          public decimal Precio { get; set; }
+      }
+
+
+
+
+
+
+
+
+
+
+      var cotizacion = new Cotizacion() {
+          ClienteId = "123",
+          Cliente   = new Cliente(),
+          Precio    = 100m
       };
 
-      Shape[] shapes = [
-          new Circle(5),
-          new Rect(4, 6),
-      ];
-      double[] areas = shapes.Select(Area).ToArray();
+
+  - title: Método estático para crear instancia (pattern factory)(DDD)
+    description: ...
+    typescript: |
+      class Cotizacion {
+        public id: string;
+        public clienteId: string;
+        public cliente: Cliente;
+        public precio: decimaljs.Decimal;
+
+        public static crear(props: ContizacionProps) {
+          return new Cotizacion(/* */);
+        }
+      }
+
+
+      const cotizacion = Cotizacion.crear({
+        clienteId: "123",
+        cliente: new Cliente(),
+        precio: decimaljs(100)
+      });
+    csharp: |
+      class Cotizacion {
+          public Guid Id { get; private set; }
+          public string ClienteId { get; private set; }
+          public Cliente Cliente { get; private set; }
+          public decimal Precio { get; private set; }
+
+          public static Cotizacion Crear(string clienteId, Cliente cliente, decimal precio) {
+              return new Cotizacion(Guid.NewGuid(), clienteId, cliente, precio);
+          }
+      }
+
+      // En C# puedes poner nombre a los parámetros, no necesitas crear una interfaz!
+      var cotizacion = Cotizacion.Crear(
+          clienteId: "123",
+          cliente: new Cliente(),
+          precio: 100m
+      );
+
+
+  - title: Fechas
+    description: TS solo tiene Date, C# tiene muchas opciones
+    typescript: |
+      // Una fecha con hora. Dificil de controlar, necesita librerías adicionales
+      const hoy = new Date();
+    csharp: |
+      // Fecha, hora y zona horaria
+      DateTimeOffset hoy = DateTimeOffset.Now;
+
+      // Fecha y hora, sin zona horaria (no recomendado)
+      DateTime hoy       = DateTime.Now;
+
+      // Solo una fecha,  ejm: 25/12/2025
+      DateOnly hoy       = DateOnly.FromDateTime(DateTime.Now);
+
+      // Solo una hora, ejm: 14:30
+      TimeOnly hoy       = TimeOnly.FromDateTime(DateTime.Now);
+
+
+  - title: Números
+    description: TS tiene number, C# tiene todo lo necesario
+    typescript: |
+      // El único tipo numérico: number. So sad.
+      const precio: number = 19.99;
+
+      // Los decimales necesitan librerías adicionales, como decimal.js
+      const precio: decimaljs.Decimal = new decimaljs.Decimal(19.99);
+    csharp: |
+      // 
+      int   cantidad = 5;       // Números enteros
+      uint  edad     = 30;      // Enteros sin signo
+      double peso    = 70.5;    // Números con decimales
+      decimal precio  = 19.99m; // Números precisos, excelente para dinero
+
+      // En realidad hay muchos más, pero estos son los más comunes
+
+
+  - title: UUID
+    description: Tipo de dato específico para identificadores únicos, no es necesario usar librerías externas
+    typescript: |
+      class Cliente {
+        // Un string simple, riesgo de errores de formato
+        public id: string;
+      }
+    csharp: |
+      class Cliente {
+          // Tipo de dato específico para UUID, validación automática
+          public Guid Id { get; set; }
+      }
+
+
+  - title: Constructor primario (injeccion de dependencias)
+    description: Es como si la clase fuera una función
+    typescript: |
+      class CreateQuotationUseCase {
+        public constructor(
+          private readonly quotationRepository: IQuotationRepository,
+        ) {}
+
+        public execute(command: CreateQuotationCommand) {
+          // ...
+        }
+      }
+    csharp: |
+      class CreateQuotationUseCase(IQuotationRepository quotationRepository) {
+          public void Execute(CreateQuotationCommand command) {
+              // ...
+          }
+      }
+
+
+  - title: Comandos, queries, eventos, DTOs
+    description: Un `record` es una clase inmutable sencilla. Perfecta para comandos, eventos y DTOs. C# genera automáticamente el constructor, los getters y los métodos de igualdad.
+    typescript: |
+      class CreateClientCommand {
+        public constructor(
+          public readonly name: string,
+          public readonly email: string
+        ) {}
+      }
+    csharp: |
+      record CreateClientCommand(string Name, string Email);
+
+
+  - title: Herencia
+    description: La herencia usa dos puntos `:` en vez de `extends`.
+    typescript: |
+      class GetPaginatedQuotationsQuery extends PaginationQuery {
+        public constructor(
+          public readonly page: number,
+          public readonly pageSize: number,
+          public readonly filter?: string
+        ) {
+          super(page, pageSize);
+        }
+      }
+    csharp: |
+      record GetPaginatedQuotationsQuery(
+          int Page,
+          int PageSize,
+          string? Filter = null
+      ) : PaginationQuery(Page, PageSize);
+
+
+  - title: Command y Query (MediaTR)
+    description: MediaTR es la librería para CQRS, y automatiza muchas cosas.
+    typescript: |
+      class CreateCostingCommand implements ICommand {
+          constructor(
+              public readonly dto: CreateCostingRequestDto,
+              public readonly userId: string,
+          ) {}
+      }
+
+      @Injectable()
+      @CommandHandler(CreateCostingCommand)
+      export class CreateCostingCommandHandler implements ICommandHandler<CreateCostingCommand> {
+          constructor(
+              @Inject(UNIT_OF_WORK)
+              private readonly unitOfWork: IUnitOfWork,
+              @Inject(COSTING_REPOSITORY)
+              private readonly costingRepository: ICostingRepository,
+          ) {}
+
+          async execute(command: CreateCostingCommand): Promise<CostingResponseDto> {
+            // ...
+          }
+      }
+    csharp: |
+      record CreateCostingCommand(
+          CreateCostingRequestDto Dto,
+          Guid UserId
+      ) : IRequest<CostingResponseDto>;
+
+
+
+
+      // No se necesitan decoradores, MediaTR se encarga de registrar automáticamente
+      class CreateCostingCommandHandler(
+          ICostingRepository costingRepository   // Inyección automática sin `@Inject`
+      ) : IRequestHandler<CreateCostingCommand, CostingResponseDto> {
+          public async Task<CostingResponseDto> Handle(CreateCostingCommand command) {
+              // ...
+          }
+      }
+
+
+  - title: Repositorios
+    description: En vez de Prisma, EF core.
+    typescript: |
+      interface IQuotationRepository {
+        findById(id: string): Promise<Quotation | null>;
+      }
+
+      // Infra
+
+      class QuotationRepository implements IQuotationRepository {
+        constructor(protected readonly prisma: PrismaService) {
+            super();
+        }
+
+        async findById<V = Quotation>(id: string): Promise<Quotation | null> {
+            const cotizacion = await this.prisma.quotation.findUnique({
+                where: { id },
+                include: { cliente: true },
+            });
+
+            if (!cotizacion) return null;
+
+            // ugh, mappers
+            return PrismaQuotationMapper.toDomain(cotizacion as PrismaQuotationWithRelations) as V;
+        }
+      }
+
+      class PrismaQuotationMapper {
+        static toDomain(prismaModel: PrismaQuotationWithRelations): Quotation {
+            const cotizacion = new Quotation({
+                id: prismaModel.id,
+                clienteId: prismaModel.clienteId,
+                cliente: new Cliente({
+                    id: prismaModel.cliente.id,
+                    name: prismaModel.cliente.name,
+                    // ...
+                }),
+                precio: new decimaljs.Decimal(prismaModel.precio),
+            });
+
+            return cotizacion;
+        }
+      }
+    csharp: |
+      interface IQuotationRepository {
+          Task<Cotizacion> FindByIdAsync(Guid id);
+      }
+
+      // Infra
+
+      class QuotationRepository(AppDbContext dbContext) : IQuotationRepository {
+          public async Task<Cotizacion> FindByIdAsync(Guid id) {
+              return await dbContext.Cotizaciones
+                  .Include(c => c.Cliente) // Carga la relación Cliente automáticamente
+                  .FirstOrDefaultAsync(c => c.Id == id);
+              // ✨Cero mappers✨
+          }
+      }
+
+
+  - title: Registrar repositorios
+    description: En C# solo se registra una vez. Despues puedes inyectar la interfaz sin necesidad de usar decoradores o anotaciones o Symbol.
+    typescript: |
+      // == tokens.ts ==
+      export const QUOTATION_REPOSITORY = Symbol('QUOTATION_REPOSITORY');
+      //
+      // Muchisimos tokens mas...
+      //
+
+
+      // == repositories.providers.ts ==
+      export const REPOSITORIES_PROVIDERS: Provider[] = [
+          {
+              provide: QUOTATION_REPOSITORY,
+              useClass: PrismaQuotationRepository,
+          },
+          //
+          // Muchisimos objetos mas...
+          //
+      ]
+
+
+      // == caso-de-uso.ts ==
+      @Injectable()
+      @CommandHandler(CreateQuotationCommand)
+      export class CreateQuotationCommandHandler implements ICommandHandler<CreateQuotationCommand> {
+          constructor(
+              //
+              // Hay que inyectar manualmente el repositorio
+              //
+              @Inject(QUOTATION_REPOSITORY)
+              private readonly quotationRepository: IQuotationRepository,
+          ) {}
+
+          async execute(command: CreateQuotationCommand): Promise<CostingResponseDto> {
+            // ...
+          }
+      }
+
+    csharp: |
+
+
+
+
+
+
+
+      // == ServiceCollectionExtensions.cs ==
+      public static IServiceCollection AddInfrastructure(this IServiceCollection services) {
+          //   Se registra solo aquí, en una linea:
+          services.AddScoped<IQuotationRepository, QuotationRepository>();
+          //
+          // Muchisimos repositorios mas...
+          //
+          return services;
+      }
+
+
+
+      // == caso-de-uso.cs ==
+      class CreateQuotationCommandHandler(
+          IQuotationRepository quotationRepository   // Inyección automática sin `@Inject`
+      ) : IRequestHandler<CreateQuotationCommand, CostingResponseDto> {
+          public async Task<CostingResponseDto> Handle(CreateQuotationCommand command) {
+              // ...
+          }
+      }
+
+
+  - title: Decoradores
+    description: En C# se llaman atributos, y se definen con corchetes `[]` en vez de `@`. No se necesita anotar los tipos de dato.
+    typescript: |
+      export class CostPackagingResponseDto {
+          @ApiProperty({
+              description: 'ID del costo de empaque',
+              example: 'uuid-string',
+          })
+          id!: string;
+
+          @ApiProperty({
+              description: 'Tipo de material (BAG, BOX, LABEL, WATER, etc.)',
+          })
+          materialType!: string;
+      }
+    csharp: |
+      record CostPackagingResponseDto(
+          [Description("ID del costo de empaque")]
+          Guid Id,
+          [Description("Tipo de material (BAG, BOX, LABEL, WATER, etc.)")]
+          MaterialType MaterialType
+      );
+
+
+  - title: Title
+    description: Desc
+    typescript: |
+      //
+    csharp: |
+      //
+

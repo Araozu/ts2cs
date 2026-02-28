@@ -63,7 +63,7 @@ async function CodePane({ lang, code }: { lang: "TypeScript" | "C#"; code: strin
         lang === "C#" && "border-csharp/40"
       )}
     >
-      <div className="flex items-center gap-2 border-b bg-muted/40 px-3 py-2">
+      <div className="code-pane-header flex items-center gap-2 border-b px-3 py-2">
         <LangBadge lang={lang} />
       </div>
       <ScrollArea className="h-full">
@@ -109,7 +109,7 @@ async function ComparisonCard({ example }: { example: CodeExample }) {
 
 export async function CodeComparison({ examples }: { examples: CodeExample[] }) {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-12 sm:px-6 lg:px-12">
+    <div className="flex w-full flex-col gap-8 px-4 py-12 sm:px-6 lg:px-12">
       <header className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <FileTsIcon weight="duotone" className="size-6 text-ts" />
