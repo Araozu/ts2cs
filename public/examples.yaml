@@ -1,0 +1,129 @@
+examples:
+  - title: "Async / Await"
+    description: "Fetching data asynchronously with typed responses"
+    typescript: |
+      interface User {
+        id: number;
+        name: string;
+        email: string;
+      }
+
+      async function fetchUser(id: number): Promise<User> {
+        const response = await fetch(`/api/users/${id}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`);
+        }
+        return response.json() as Promise<User>;
+      }
+
+      // Usage
+      const user = await fetchUser(42);
+      console.log(user.name);
+    csharp: |
+      public record User(int Id, string Name, string Email);
+
+      public async Task<User> FetchUserAsync(int id)
+      {
+          using var client = new HttpClient();
+          var response = await client.GetAsync($"/api/users/{id}");
+          response.EnsureSuccessStatusCode();
+          return await response.Content
+              .ReadFromJsonAsync<User>()
+              ?? throw new InvalidOperationException("No data");
+      }
+
+      // Usage
+      var user = await FetchUserAsync(42);
+      Console.WriteLine(user.Name);
+
+  - title: "Generics & Constraints"
+    description: "Generic utility functions with type constraints"
+    typescript: |
+      interface Identifiable {
+        id: string | number;
+      }
+
+      function findById<T extends Identifiable>(
+        items: T[],
+        id: T["id"]
+      ): T | undefined {
+        return items.find((item) => item.id === id);
+      }
+
+      function groupBy<T, K extends keyof T>(
+        items: T[],
+        key: K
+      ): Map<T[K], T[]> {
+        return items.reduce((map, item) => {
+          const group = item[key];
+          const list = map.get(group) ?? [];
+          return map.set(group, [...list, item]);
+        }, new Map<T[K], T[]>());
+      }
+    csharp: |
+      public interface IIdentifiable
+      {
+          object Id { get; }
+      }
+
+      public static T? FindById<T>(
+          IEnumerable<T> items,
+          object id
+      ) where T : IIdentifiable
+      {
+          return items.FirstOrDefault(i => i.Id.Equals(id));
+      }
+
+      public static Dictionary<TKey, List<T>> GroupBy<T, TKey>(
+          IEnumerable<T> items,
+          Func<T, TKey> keySelector
+      ) where TKey : notnull
+      {
+          return items
+              .GroupBy(keySelector)
+              .ToDictionary(g => g.Key, g => g.ToList());
+      }
+
+  - title: "Pattern Matching"
+    description: "Exhaustive pattern matching on discriminated unions / sealed types"
+    typescript: |
+      type Shape =
+        | { kind: "circle"; radius: number }
+        | { kind: "rect"; width: number; height: number }
+        | { kind: "triangle"; base: number; height: number };
+
+      function area(shape: Shape): number {
+        switch (shape.kind) {
+          case "circle":
+            return Math.PI * shape.radius ** 2;
+          case "rect":
+            return shape.width * shape.height;
+          case "triangle":
+            return 0.5 * shape.base * shape.height;
+        }
+      }
+
+      const shapes: Shape[] = [
+        { kind: "circle", radius: 5 },
+        { kind: "rect", width: 4, height: 6 },
+      ];
+      const areas = shapes.map(area);
+    csharp: |
+      public abstract record Shape;
+      public record Circle(double Radius) : Shape;
+      public record Rect(double Width, double Height) : Shape;
+      public record Triangle(double Base, double Height) : Shape;
+
+      public static double Area(Shape shape) => shape switch
+      {
+          Circle c    => Math.PI * c.Radius * c.Radius,
+          Rect r      => r.Width * r.Height,
+          Triangle t  => 0.5 * t.Base * t.Height,
+          _           => throw new UnreachableException()
+      };
+
+      Shape[] shapes = [
+          new Circle(5),
+          new Rect(4, 6),
+      ];
+      double[] areas = shapes.Select(Area).ToArray();
